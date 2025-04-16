@@ -2,6 +2,8 @@
 
 Search-RL is a project that combines reinforcement learning (RL) and traditional graph-finding algorithms to solve maze navigation problems. The RL agent learns optimal policies using Q-learning, while graph algorithms like Breadth-First Search (BFS), Depth-First Search (DFS), and A* Search provide alternative solutions for comparison.
 
+<img src="imgs/rl-movie.gif?123" width="1250px">
+
 ---
 
 ## Features
@@ -101,6 +103,7 @@ Example grid file (`grids/grid_01.txt`):
 #  % #
 ######
 ```
+<img src="imgs/grid_01.jpg?123" width="250px">
 
 You can create your own maze files and place them in the `grids/` directory.
 
