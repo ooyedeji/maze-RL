@@ -1,6 +1,7 @@
 __pycache__/
 *.py[cod]
 *.class
+*.ipynb
 
 # Virtual environment
 venv/
@@ -44,3 +45,8 @@ desktop.ini
 
 # Test files and directories
 test*
+
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+pixi.lock
