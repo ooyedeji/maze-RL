@@ -1,3 +1,7 @@
+import os
+
+os.environ["SDL_VIDEODRIVER"] = "dummy"
+
 import pygame
 from enum import Enum
 from collections import namedtuple
