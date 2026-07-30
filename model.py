@@ -51,19 +51,25 @@ class QTrainer:
             status = (status,)
 
         # Predicted Q-values and targets
-        pred_actions = self.model(state)
-        Q_sa = pred_actions.clone()
+        pred_actions: torch.Tensor = self.model(state)
+        # Q_sa = pred_actions.clone()
         Q_sa_next = self.model(state_next)
+
+        Q_sa = torch.zeros(len(status), requires_grad=True).clone()
+        Q_sa_pred = torch.zeros(len(status), requires_grad=True).clone()
 
         # Update Q-values based on rewards and the Bellman equation
         for i in range(len(status)):
-            Q_sa[i, action[i]] = reward[i]
+            Q_sa[i] = pred_actions[i, action[i]]
+
+            Q_sa_pred[i] = reward[i]
             if status[i] == MazeStatus.RUNNING:
-                Q_sa[i, action[i]] += self.gamma * torch.max(Q_sa_next[i])
+                Q_sa_pred[i] += self.gamma * torch.max(Q_sa_next[i])
 
         # Backpropagate the loss to compute gradients
         self.optimizer.zero_grad()
-        loss = self.criterion(pred_actions, Q_sa)
+        # print(Q_sa.shape, action)
+        loss: torch.Tensor = self.criterion(Q_sa_pred, Q_sa)
         loss.backward()
 
         # Update the model parameters
