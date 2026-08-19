@@ -3,7 +3,6 @@ import random
 import numpy as np
 from maze import Maze, MazeStatus
 from agent import Agent
-from model import Linear_QNet, QTrainer
 from utils import plot
 
 GRIDS = [grid for grid in os.listdir("grids") if grid.startswith("grid_")]
@@ -11,12 +10,13 @@ AVERAGING_WINDOW = 50
 EARLY_STOP = 200
 GAMMA = 0.90
 LR = 0.001
-HIDDEN_LAYER_SIZES = (128,)
+HIDDEN_LAYER_SIZES = (128, )
 BATCH_SIZE = 1_000
 
 
-def qtrain(random_state=42):
+def qtrain(random_state: int = 42) -> None:
     random.seed(random_state)
+
     get_grid_path = lambda: "grids/" + random.choice(GRIDS)
 
     # Track board metrics
@@ -27,23 +27,27 @@ def qtrain(random_state=42):
 
     # Initialize maze board and AI agent
     maze = Maze(grid_path=get_grid_path(), random_initial=True)
-    model = Linear_QNet(len(maze.get_state()), HIDDEN_LAYER_SIZES, 4)
-    trainer = QTrainer(model, lr=LR, gamma=GAMMA)
-    agent = Agent(trainer=trainer, batch_size=BATCH_SIZE)
+    agent = Agent(
+        state_dim=len(maze.get_state()),
+        hidden_size=HIDDEN_LAYER_SIZES,
+        batch_size=BATCH_SIZE,
+        lr=LR,
+        gamma=GAMMA,
+    )
 
     while True:
         # Get current state
         state = maze.get_state()
 
         # Get action index from model
-        action_id = agent.get_action(state)
+        direction = agent.get_action(state)
 
         # Advance board with action
-        reward, status = maze.play_step(agent.directions[action_id])
+        reward, status = maze.play_step(direction)
         next_state = maze.get_state()
 
         # Memorize outcomes
-        agent.memorize(state, action_id, status, reward, next_state)
+        agent.memorize(state, direction, status, reward, next_state)
 
         # Train on short memory
         agent.train_short_memory()
@@ -65,7 +69,7 @@ def qtrain(random_state=42):
 
             # Print progress
             print(
-                f"Episode: {agent.n_episode:>5}",
+                f"Episode: {agent.episode:>5}",
                 f"-- Score: {scores[-1]:.1f}",
                 f"-- mean_score: {mean_scores[-1]:.1f}",
                 f"-- Record: {max(scores):.1f}",
@@ -80,16 +84,16 @@ def qtrain(random_state=42):
             maze.reset()
 
             # Update agent episode count
-            agent.n_episode += 1
+            agent.episode += 1
 
             # Save best model
             if win_streak > 0 and win_streak % AVERAGING_WINDOW == 0:
-                agent.trainer.save(f"models/model_0.pth")
+                agent.actor.save(f"models/model_0.pth")
 
         # Stop if when exploration is concluded and win_streak >= EARLY_STOP
         if agent.epsilon == agent.epsilon_end and win_streak >= EARLY_STOP:
             print("QNet training completed.")
-            agent.trainer.save(f"models/model_1.pth")
+            agent.actor.save(f"models/model_1.pth")
             break
 
 
